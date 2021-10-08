@@ -58,6 +58,7 @@ public class CreateServlet extends HttpServlet {
 
                 RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/tasks/new.jsp");
                 rd.forward(request, response);
+
             }else {
 
                 em.persist(t);

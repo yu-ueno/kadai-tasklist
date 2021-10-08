@@ -12,7 +12,7 @@ public class TaskValidator {
         List<String> errors = new ArrayList<String>();
         String contentError = validateContent(t.getContent());
 
-        if(!errors.equals("")) {
+        if(!contentError.equals("")) {
             errors.add(contentError);
         }
 
