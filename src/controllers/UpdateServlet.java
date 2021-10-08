@@ -2,8 +2,10 @@ package controllers;
 
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.util.List;
 
 import javax.persistence.EntityManager;
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -11,6 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import models.TaskEntity;
+import models.validators.TaskValidator;
 import utils.DBUtil;
 
 /**
@@ -41,15 +44,25 @@ public class UpdateServlet extends HttpServlet {
             t.setContent(request.getParameter("content"));
             t.setUpdateDate(new Timestamp(System.currentTimeMillis()));
 
-            // DB更新
-            em.getTransaction().begin();
-            em.getTransaction().commit();
-            em.close();
+            List<String> errors = TaskValidator.Validate(t);
 
-            request.getSession().removeAttribute("tasks_id");
+            if(errors.size() > 0) {
+                em.close();
+                request.setAttribute("token", request.getSession().getId());
+                request.setAttribute("tasks", t);
+                request.setAttribute("errors", errors);
 
-            // indexページへ
-            response.sendRedirect(request.getContextPath() + "/index");
+                RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/tasks/edit.jsp");
+                rd.forward(request, response);
+            }else {
+
+                em.persist(t);
+                em.getTransaction().commit();
+                request.getSession().setAttribute("flush", "更新が完了しました。");
+                em.close();
+
+                response.sendRedirect(request.getContextPath() + "/index");
+            }
 
         }
     }

@@ -35,10 +35,28 @@ public class IndexServlet extends HttpServlet {
 
         EntityManager em = DBUtil.createEntityManager();
 
-        List<TaskEntity> tasks = em.createNamedQuery("getAllTasks", TaskEntity.class).getResultList();
+        int page = 1;
+        try {
+            page = Integer.parseInt(request.getParameter("page"));
+        } catch(NumberFormatException e) {}
+
+        List<TaskEntity> tasks = em.createNamedQuery("getAllTasks", TaskEntity.class)
+                                   .setFirstResult(15 * (page - 1))
+                                   .setMaxResults(15)
+                                   .getResultList();
+
+        long tasksCount = (long)em.createNamedQuery("getTasksCount", Long.class)
+                                      .getSingleResult();
 
         em.close();
         request.setAttribute("tasks", tasks);
+        request.setAttribute("tasksCount", tasksCount);
+        request.setAttribute("page", page);
+
+        if(request.getSession().getAttribute("flush") != null) {
+            request.setAttribute("flush", request.getSession().getAttribute("flush"));
+            request.getSession().removeAttribute("flush");
+        }
 
         RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/tasks/index.jsp");
         rd.forward(request, response);
